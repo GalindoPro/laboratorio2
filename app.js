@@ -514,5 +514,10 @@ function initApp() {
         });
 }
 
-// Arrancamos la aplicación cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', initApp);
+// Arrancamos la aplicación cuando el DOM esté listo (o inmediatamente si ya se cargó)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
+
