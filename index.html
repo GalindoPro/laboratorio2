@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Galería de Películas Interactiva desarrollada en Vanilla JavaScript aplicando patrones de arquitectura frontend.">
+    <title>CineVerse | Galería de Películas</title>
+    <!-- Fuente Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Encabezado Principal -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <span class="brand-icon">🎬</span>
+                <h1 class="brand-title">Cine<span>Verse</span></h1>
+            </div>
+            
+            <!-- Barra de búsqueda y contador -->
+            <div class="header-actions">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Buscar película por título..." aria-label="Buscar película por título">
+                    <button id="clear-search" class="clear-btn" hidden aria-label="Limpiar búsqueda">&times;</button>
+                </div>
+
+                <div class="favorites-badge" id="favorites-counter-btn" title="Ver mis películas favoritas">
+                    <span class="heart-icon">❤️</span>
+                    <span class="badge-text">Favoritas</span>
+                    <span id="favorites-count" class="badge-number">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="app-main">
+        <!-- Barra de Filtros (Demuestra Delegación de Eventos) -->
+        <section class="controls-section">
+            <h2 class="sr-only">Filtros de navegación</h2>
+            <div id="filter-bar" class="filter-bar">
+                <button class="filter-btn active" data-genre="all">Todas</button>
+                <button class="filter-btn" data-genre="Acción">Acción</button>
+                <button class="filter-btn" data-genre="Ciencia Ficción">Ciencia Ficción</button>
+                <button class="filter-btn" data-genre="Drama">Drama</button>
+                <button class="filter-btn" data-genre="Animación">Animación</button>
+                <button class="filter-btn" data-genre="favorites">❤️ Mis Favoritas</button>
+            </div>
+        </section>
+
+        <!-- Indicador de Estado / Carga (Control de Asincronía) -->
+        <div id="status-container" class="status-container">
+            <div class="spinner"></div>
+            <p id="status-text">Cargando catálogo de películas desde el servidor...</p>
+        </div>
+
+        <!-- Estado Vacío -->
+        <div id="empty-state" class="empty-state" hidden>
+            <span class="empty-icon">🍿</span>
+            <h3>No se encontraron películas</h3>
+            <p>Intenta ajustar la búsqueda o seleccionar otro filtro de género.</p>
+        </div>
+
+        <!-- Galería de Películas (Donde se inyecta con DocumentFragment) -->
+        <section class="gallery-section">
+            <h2 class="sr-only">Listado de Películas</h2>
+            <div id="gallery-container" class="gallery-grid"></div>
+        </section>
+    </main>
+
+    <!-- Modal de Detalles de Película -->
+    <dialog id="movie-modal" class="movie-modal">
+        <div class="modal-content">
+            <button id="close-modal-btn" class="close-modal-btn" aria-label="Cerrar modal">&times;</button>
+            <div id="modal-body" class="modal-body">
+                <!-- Se llena dinámicamente al seleccionar una película -->
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Pie de página -->
+    <footer class="app-footer">
+        <p>Laboratorio 2 &bull; Desarrollo Web &bull; UMG 2026</p>
+        <p class="architecture-notes">Arquitectura: Closures &bull; Promises &bull; DocumentFragment &bull; Event Delegation</p>
+    </footer>
+
+    <!-- Plantilla HTML5 para clonación eficiente de Tarjetas de Película -->
+    <template id="movie-card-template">
+        <article class="movie-card" data-action="detail" data-id="">
+            <div class="card-media">
+                <img class="movie-poster" src="" alt="" loading="lazy">
+                <span class="movie-rating">⭐ <span class="rating-value">0.0</span></span>
+                <button class="fav-btn" data-action="favorite" title="Agregar a favoritas" aria-label="Guardar favorita">
+                    <span class="fav-icon">🤍</span>
+                </button>
+            </div>
+            <div class="card-content">
+                <span class="movie-genre">Género</span>
+                <h3 class="movie-title">Título de la película</h3>
+                <p class="movie-year">2026</p>
+            </div>
+        </article>
+    </template>
+
+    <script src="app.js"></script>
+</body>
+</html>
