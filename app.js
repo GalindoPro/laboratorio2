@@ -497,6 +497,8 @@ function initApp() {
             
             // Ocultamos el indicador de carga
             statusContainer.hidden = true;
+            statusContainer.style.display = 'none';
+
             
             // Renderizamos las películas usando DocumentFragment de forma eficiente
             renderGallery(store.getFilteredMovies());

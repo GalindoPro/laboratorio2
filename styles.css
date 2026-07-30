@@ -252,6 +252,11 @@ body {
 }
 
 /* 5. ESTADO DE CARGA (SPINNER Y TEXTO) */
+/* Regla global para elementos ocultos con el atributo HTML 'hidden' */
+[hidden] {
+    display: none !important;
+}
+
 .status-container {
     display: flex;
     flex-direction: column;
@@ -261,6 +266,7 @@ body {
     gap: 1rem;
     text-align: center;
 }
+
 
 .spinner {
     width: 48px;
