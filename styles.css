@@ -201,6 +201,42 @@ body {
     text-align: center;
 }
 
+/* Selector de Idioma (ES / EN) */
+.lang-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    user-select: none;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+
+.lang-toggle-btn:hover {
+    border-color: var(--accent-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(255, 183, 3, 0.35);
+}
+
+.lang-icon {
+    font-size: 1rem;
+}
+
+.lang-text {
+    background: linear-gradient(135deg, var(--accent-gold), #f39c12);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
 /* 4. CONTENIDO PRINCIPAL Y BARRA DE FILTROS */
 .app-main {
     max-width: 1280px;
@@ -598,4 +634,180 @@ body {
     .modal-info-col {
         padding: 1.5rem;
     }
+}
+
+/* 10. ESTILOS PARA SERVICIOS PARALELOS Y SIMULADOR DE FALLOS (Promise.allSettled) */
+.simulation-section {
+    margin-bottom: 1rem;
+}
+
+.simulation-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px dashed var(--border-color);
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-md);
+    flex-wrap: wrap;
+}
+
+.simulation-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.sim-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.sim-btn:hover {
+    border-color: var(--accent-gold);
+}
+
+.sim-btn.active-err {
+    background: rgba(229, 9, 20, 0.2);
+    border-color: var(--accent-red);
+    color: #ff6b6b;
+}
+
+/* Anuncios Promocionales */
+.ads-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.banner-box {
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    transition: var(--transition);
+}
+
+.banner-box.success {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(21, 28, 44, 0.9));
+    border: 1px solid rgba(255, 183, 3, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.banner-box.error-fallback {
+    background: rgba(229, 9, 20, 0.1);
+    border: 1px dashed var(--accent-red);
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.banner-badge.warning {
+    background: var(--accent-red);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-sm);
+}
+
+.banner-content h4 {
+    color: var(--accent-gold);
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.banner-content p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.banner-code {
+    background: var(--bg-primary);
+    border: 1px solid var(--accent-gold);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+}
+
+.banner-code span {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.banner-code strong {
+    color: var(--accent-gold);
+    letter-spacing: 1px;
+}
+
+.banner-error-msg {
+    color: #ff6b6b;
+    font-size: 0.95rem;
+}
+
+.banner-subtext {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* Reseñas de Usuarios */
+.reviews-wrapper {
+    margin-top: 2.5rem;
+}
+
+.reviews-box {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.reviews-box.error-fallback {
+    border-color: rgba(229, 9, 20, 0.4);
+    background: rgba(229, 9, 20, 0.05);
+}
+
+.reviews-box h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.review-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.review-comment {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    font-style: italic;
+}
+
+.reviews-error-msg {
+    color: #ff6b6b;
+    font-size: 0.9rem;
 }

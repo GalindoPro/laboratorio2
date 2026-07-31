@@ -20,7 +20,7 @@
                 <h1 class="brand-title">Cine<span>Verse</span></h1>
             </div>
             
-            <!-- Barra de búsqueda y contador -->
+            <!-- Barra de búsqueda, contador y selector de idioma -->
             <div class="header-actions">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
@@ -30,15 +30,32 @@
 
                 <div class="favorites-badge" id="favorites-counter-btn" title="Ver mis películas favoritas">
                     <span class="heart-icon">❤️</span>
-                    <span class="badge-text">Favoritas</span>
+                    <span id="badge-text-fav" class="badge-text">Favoritas</span>
                     <span id="favorites-count" class="badge-number">0</span>
                 </div>
+
+                <button id="lang-toggle-btn" class="lang-toggle-btn" title="Cambiar idioma / Switch language" aria-label="Cambiar idioma">
+                    <span class="lang-icon">🌐</span>
+                    <span id="current-lang-text" class="lang-text">ES</span>
+                </button>
             </div>
         </div>
     </header>
 
     <!-- Contenido Principal -->
     <main class="app-main">
+        <!-- Panel de Simulación de Fallos para Screencast (Demostración de Promise.allSettled) -->
+        <section class="simulation-section">
+            <div class="simulation-bar">
+                <span class="simulation-label">🧪 Simular Fallo API (Promise.allSettled):</span>
+                <button id="toggle-ad-err" class="sim-btn">🟢 Anuncios: Normal</button>
+                <button id="toggle-review-err" class="sim-btn">🟢 Reseñas: Normal</button>
+            </div>
+        </section>
+
+        <!-- Contenedor para Anuncios Promocionales (Servicio 3) -->
+        <div id="ads-container" class="ads-wrapper"></div>
+
         <!-- Barra de Filtros (Demuestra Delegación de Eventos) -->
         <section class="controls-section">
             <h2 class="sr-only">Filtros de navegación</h2>
@@ -61,8 +78,8 @@
         <!-- Estado Vacío -->
         <div id="empty-state" class="empty-state" hidden>
             <span class="empty-icon">🍿</span>
-            <h3>No se encontraron películas</h3>
-            <p>Intenta ajustar la búsqueda o seleccionar otro filtro de género.</p>
+            <h3 id="empty-title">No se encontraron películas</h3>
+            <p id="empty-text">Intenta ajustar la búsqueda o seleccionar otro filtro de género.</p>
         </div>
 
         <!-- Galería de Películas (Donde se inyecta con DocumentFragment) -->
@@ -70,6 +87,9 @@
             <h2 class="sr-only">Listado de Películas</h2>
             <div id="gallery-container" class="gallery-grid"></div>
         </section>
+
+        <!-- Contenedor para Reseñas de Usuarios (Servicio 2) -->
+        <div id="reviews-container" class="reviews-wrapper"></div>
     </main>
 
     <!-- Modal de Detalles de Película -->
@@ -84,8 +104,8 @@
 
     <!-- Pie de página -->
     <footer class="app-footer">
-        <p>Laboratorio 2 &bull; Desarrollo Web &bull; UMG 2026</p>
-        <p class="architecture-notes">Arquitectura: Closures &bull; Promises &bull; DocumentFragment &bull; Event Delegation</p>
+        <p id="footer-lab">Laboratorio 2 &bull; Desarrollo Web &bull; UMG 2026</p>
+        <p id="footer-arch" class="architecture-notes">Arquitectura: ESM Modules &bull; Promise.allSettled &bull; Closure Cache &bull; Event Delegation</p>
     </footer>
 
     <!-- Plantilla HTML5 para clonación eficiente de Tarjetas de Película -->
@@ -106,6 +126,6 @@
         </article>
     </template>
 
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
