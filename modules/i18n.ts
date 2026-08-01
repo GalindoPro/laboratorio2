@@ -1,10 +1,42 @@
 /**
  * ============================================================================
- * MÓDULO I18N - DICCIONARIO Y GESTIÓN DE TRADUCCIONES (ESM)
+ * MÓDULO I18N - DICCIONARIO Y GESTIÓN DE TRADUCCIONES (TS STRICT)
  * ============================================================================
  */
 
-export const TRANSLATIONS = {
+export type Language = 'es' | 'en';
+
+export interface TranslationDictionary {
+    searchPlaceholder: string;
+    clearSearchAria: string;
+    favoritesBadge: string;
+    favoritesTitle: string;
+    langBtnTitle: string;
+    filterAll: string;
+    filterAction: string;
+    filterSciFi: string;
+    filterDrama: string;
+    filterAnimation: string;
+    filterFavorites: string;
+    loadingText: string;
+    emptyTitle: string;
+    emptyText: string;
+    inFavorites: string;
+    notFavorite: string;
+    directorLabel: string;
+    ratingLabel: string;
+    footerLab: string;
+    footerArch: string;
+    favBtnAdd: string;
+    closeModalAria: string;
+    simErrorsTitle: string;
+    simAdFail: string;
+    simReviewFail: string;
+    adsTitle: string;
+    reviewsTitle: string;
+}
+
+export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     es: {
         searchPlaceholder: "Buscar película por título...",
         clearSearchAria: "Limpiar búsqueda",
@@ -24,8 +56,8 @@ export const TRANSLATIONS = {
         notFavorite: "🤍 No Favorita",
         directorLabel: "Director:",
         ratingLabel: "/ 10",
-        footerLab: "Laboratorio 2 • Desarrollo Web • UMG 2026",
-        footerArch: "Arquitectura: ESM Modules • Promise.allSettled • Closure Cache • Event Delegation",
+        footerLab: "Laboratorio 3 • Desarrollo Web • UMG 2026",
+        footerArch: "Arquitectura: TypeScript Strict • DTOs • Mappers • Entities • Promise.allSettled",
         favBtnAdd: "Agregar a favoritas",
         closeModalAria: "Cerrar modal",
         simErrorsTitle: "Simulación de Fallos API",
@@ -53,8 +85,8 @@ export const TRANSLATIONS = {
         notFavorite: "🤍 Not Favorite",
         directorLabel: "Director:",
         ratingLabel: "/ 10",
-        footerLab: "Laboratory 2 • Web Development • UMG 2026",
-        footerArch: "Architecture: ESM Modules • Promise.allSettled • Closure Cache • Event Delegation",
+        footerLab: "Laboratory 3 • Web Development • UMG 2026",
+        footerArch: "Architecture: TypeScript Strict • DTOs • Mappers • Entities • Promise.allSettled",
         favBtnAdd: "Add to favorites",
         closeModalAria: "Close modal",
         simErrorsTitle: "API Failure Simulation",
@@ -67,8 +99,7 @@ export const TRANSLATIONS = {
 
 /**
  * Obtiene el objeto de traducción para el idioma dado.
- * @param {string} lang 'es' | 'en'
  */
-export function getTranslation(lang = 'es') {
+export function getTranslation(lang: Language = 'es'): TranslationDictionary {
     return TRANSLATIONS[lang] || TRANSLATIONS.es;
 }
