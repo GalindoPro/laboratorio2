@@ -16,6 +16,7 @@
   },
   "include": [
     "app.ts",
+    "services/**/*.ts",
     "modules/**/*.ts",
     "dtos/**/*.ts",
     "entities/**/*.ts",

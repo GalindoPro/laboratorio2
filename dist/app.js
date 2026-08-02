@@ -4,12 +4,12 @@
  * ----------------------------------------------------------------------------
  * 1. Orquestación Concurrente Resiliente (Promise.allSettled)
  * 2. Mapeadores Puros que convierten DTOs crudos en Entidades saneadas
- * 3. Sistema de Caché Asíncrono Encapsulado mediante Clausuras (Closure Cache)
+ * 3. Re-mapeo dinámico i18n al cambiar de idioma (Español / Inglés)
  * 4. Tipado Estricto con TypeScript (strict, noImplicitAny, noEmitOnError)
  * ============================================================================
  */
 import { createMovieStore } from './modules/store.js';
-import { fetchAllServices } from './modules/api.js';
+import { fetchAllServices } from './services/orchestrator.service.js';
 import { mapMovieDTOArrayToEntities } from './mappers/movie.mapper.js';
 import { mapReviewDTOArrayToEntities } from './mappers/review.mapper.js';
 import { mapAdDTOToEntity } from './mappers/ad.mapper.js';
@@ -17,7 +17,44 @@ import { galleryContainer, statusContainer, filterBar, searchInput, clearSearchB
 export const store = createMovieStore();
 let simulateAdFail = false;
 let simulateReviewFail = false;
-let lastPayload = null;
+// Almacén local de los DTOs crudos devueltos por Promise.allSettled
+let lastRawResults = null;
+/**
+ * Transforma los DTOs crudos a Entidades según el idioma activo en el Store
+ * y actualiza los componentes dinámicos de la interfaz.
+ */
+function applyPayloadForLanguage(rawResults) {
+    const currentLang = store.getLanguage();
+    // 1. Películas: DTO -> Mapper -> Entity (para el idioma activo)
+    const moviesDTO = rawResults.moviesResult.status === 'fulfilled' ? rawResults.moviesResult.value : [];
+    const moviesEntities = mapMovieDTOArrayToEntities(moviesDTO, currentLang);
+    // 2. Reseñas: DTO -> Mapper -> Entity
+    let reviewsEntities = null;
+    let reviewsError = null;
+    if (rawResults.reviewsResult.status === 'fulfilled') {
+        reviewsEntities = mapReviewDTOArrayToEntities(rawResults.reviewsResult.value, currentLang);
+    }
+    else {
+        reviewsError = rawResults.reviewsResult.reason?.message || "Error al cargar reseñas";
+    }
+    // 3. Anuncios: DTO -> Mapper -> Entity
+    let adEntity = null;
+    let adsError = null;
+    if (rawResults.adsResult.status === 'fulfilled') {
+        adEntity = mapAdDTOToEntity(rawResults.adsResult.value, currentLang);
+    }
+    else {
+        adsError = rawResults.adsResult.reason?.message || "Error al cargar anuncios";
+    }
+    // Actualizar Store centralizado con las Entidades formateadas para el idioma activo
+    store.setMovies(moviesEntities);
+    // Actualizar la Interfaz Gráfica
+    updateLanguageUI(store);
+    renderGallery(store.getFilteredMovies(), store);
+    updateFavoritesBadge(store);
+    renderAdsBanner(adEntity, adsError, store);
+    renderReviewsWidget(reviewsEntities, reviewsError, store);
+}
 /**
  * Función principal de inicio de la aplicación.
  * Orquesta la llamada concurrente a los 3 servicios backend y ejecuta el flujo DTO -> Mapper -> Entity.
@@ -30,48 +67,12 @@ export async function initApp() {
     }
     try {
         const rawResults = await fetchAllServices(simulateReviewFail, simulateAdFail);
-        const currentLang = store.getLanguage();
-        // --- APLICACIÓN DEL PATRÓN DTO -> MAPPER -> ENTITY ---
-        // 1. Películas
-        const moviesDTO = rawResults.moviesResult.status === 'fulfilled' ? rawResults.moviesResult.value : [];
-        const moviesEntities = mapMovieDTOArrayToEntities(moviesDTO, currentLang);
-        // 2. Reseñas
-        let reviewsEntities = null;
-        let reviewsError = null;
-        if (rawResults.reviewsResult.status === 'fulfilled') {
-            reviewsEntities = mapReviewDTOArrayToEntities(rawResults.reviewsResult.value, currentLang);
-        }
-        else {
-            reviewsError = rawResults.reviewsResult.reason?.message || "Error al cargar reseñas";
-        }
-        // 3. Anuncios / Publicidad
-        let adEntity = null;
-        let adsError = null;
-        if (rawResults.adsResult.status === 'fulfilled') {
-            adEntity = mapAdDTOToEntity(rawResults.adsResult.value, currentLang);
-        }
-        else {
-            adsError = rawResults.adsResult.reason?.message || "Error al cargar anuncios";
-        }
-        lastPayload = {
-            movies: moviesEntities,
-            reviews: reviewsEntities,
-            reviewsError,
-            ad: adEntity,
-            adsError
-        };
-        // Almacenar Entidades saneadas en el Store
-        store.setMovies(moviesEntities);
+        lastRawResults = rawResults;
         if (statusContainer) {
             statusContainer.hidden = true;
             statusContainer.style.display = 'none';
         }
-        // Actualización de la Interfaz Gráfica
-        updateLanguageUI(store);
-        renderGallery(store.getFilteredMovies(), store);
-        updateFavoritesBadge(store);
-        renderAdsBanner(adEntity, adsError, store);
-        renderReviewsWidget(reviewsEntities, reviewsError, store);
+        applyPayloadForLanguage(rawResults);
     }
     catch (error) {
         console.error("❌ [Fatal Error] Fallo crítico al inicializar la app:", error);
@@ -158,14 +159,12 @@ if (clearSearchBtn) {
         renderGallery(store.getFilteredMovies(), store);
     });
 }
+// Alternador de Idioma (Español <-> Inglés)
 if (langToggleBtn) {
     langToggleBtn.addEventListener('click', () => {
-        store.setLanguage();
-        updateLanguageUI(store);
-        renderGallery(store.getFilteredMovies(), store);
-        if (lastPayload) {
-            renderAdsBanner(lastPayload.ad, lastPayload.adsError, store);
-            renderReviewsWidget(lastPayload.reviews, lastPayload.reviewsError, store);
+        store.setLanguage(); // Cambia de 'es' a 'en' o viceversa
+        if (lastRawResults) {
+            applyPayloadForLanguage(lastRawResults); // Re-mapea todas las DTOs al nuevo idioma activo
         }
     });
 }
