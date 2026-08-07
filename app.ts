@@ -1,26 +1,32 @@
 /**
  * ============================================================================
- * CINEVERSE - PUNTO DE ENTRADA PRINCIPAL (TS STRICT + CAPAS DTO/MAPPER/ENTITY)
+ * CINEVERSE - PUNTO DE ENTRADA PRINCIPAL (TS STRICT + GENERIC REPOSITORY)
  * ----------------------------------------------------------------------------
  * 1. Orquestación Concurrente Resiliente (Promise.allSettled)
- * 2. Mapeadores Puros que convierten DTOs crudos en Entidades saneadas
- * 3. Re-mapeo dinámico i18n al cambiar de idioma (Español / Inglés)
+ * 2. Mappers Puros con TypeScript Utility Types (Partial<T>, Pick<T, K>, Omit<T, K>)
+ * 3. Repositorio Genérico DataCatalogManager<T extends { id: string | number }>
  * 4. Tipado Estricto con TypeScript (strict, noImplicitAny, noEmitOnError)
  * ============================================================================
  */
 
-import { createMovieStore, MovieStore } from './modules/store.js';
+import { createMediaStore, MediaStore } from './modules/store.js';
+import { getTranslation } from './modules/i18n.js';
 import { fetchAllServices, RawPayloadResults } from './services/orchestrator.service.js';
 import { mapMovieDTOArrayToEntities } from './mappers/movie.mapper.js';
+import { mapSeriesDTOArrayToEntities } from './mappers/series.mapper.js';
+import { mapDocumentaryDTOArrayToEntities } from './mappers/documentary.mapper.js';
 import { mapReviewDTOArrayToEntities } from './mappers/review.mapper.js';
 import { mapAdDTOToEntity } from './mappers/ad.mapper.js';
-import { Movie } from './entities/movie.entity.js';
+
+import { MediaItem, Movie, Series, Documentary } from './entities/media.entity.js';
 import { Review } from './entities/review.entity.js';
 import { Ad } from './entities/ad.entity.js';
 import {
     galleryContainer,
     statusContainer,
+    favoritesCounterBtn,
     filterBar,
+    mediaTypeBar,
     searchInput,
     clearSearchBtn,
     movieModal,
@@ -29,12 +35,12 @@ import {
     updateLanguageUI,
     renderGallery,
     updateFavoritesBadge,
-    openMovieDetailsModal,
+    openMediaDetailsModal,
     renderAdsBanner,
     renderReviewsWidget
 } from './modules/ui.js';
 
-export const store: MovieStore = createMovieStore();
+export const store: MediaStore = createMediaStore();
 
 let simulateAdFail = false;
 let simulateReviewFail = false;
@@ -44,16 +50,30 @@ let lastRawResults: RawPayloadResults | null = null;
 
 /**
  * Transforma los DTOs crudos a Entidades según el idioma activo en el Store
- * y actualiza los componentes dinámicos de la interfaz.
+ * y carga el Repositorio Genérico DataCatalogManager.
  */
 function applyPayloadForLanguage(rawResults: RawPayloadResults): void {
     const currentLang = store.getLanguage();
 
-    // 1. Películas: DTO -> Mapper -> Entity (para el idioma activo)
+    // 1. Películas: DTO -> Mapper (Partial<MovieDTO>) -> Movie Entity
     const moviesDTO = rawResults.moviesResult.status === 'fulfilled' ? rawResults.moviesResult.value : [];
     const moviesEntities: Movie[] = mapMovieDTOArrayToEntities(moviesDTO, currentLang);
 
-    // 2. Reseñas: DTO -> Mapper -> Entity
+    // 2. Series: DTO -> Mapper (Partial<SeriesDTO>) -> Series Entity
+    const seriesDTO = rawResults.seriesResult.status === 'fulfilled' ? rawResults.seriesResult.value : [];
+    const seriesEntities: Series[] = mapSeriesDTOArrayToEntities(seriesDTO, currentLang);
+
+    // 3. Documentales: DTO -> Mapper (Partial<DocumentaryDTO>) -> Documentary Entity
+    const docsDTO = rawResults.documentariesResult.status === 'fulfilled' ? rawResults.documentariesResult.value : [];
+    const docsEntities: Documentary[] = mapDocumentaryDTOArrayToEntities(docsDTO, currentLang);
+
+    // Combinar todas las entidades multimedia polimórficas (MediaItem)
+    const allMediaItems: MediaItem[] = [...moviesEntities, ...seriesEntities, ...docsEntities];
+
+    // Cargar en el DataCatalogManager<MediaItem> a través del Store
+    store.setMediaItems(allMediaItems);
+
+    // 4. Reseñas: DTO -> Mapper -> Entity
     let reviewsEntities: Review[] | null = null;
     let reviewsError: string | null = null;
     if (rawResults.reviewsResult.status === 'fulfilled') {
@@ -62,7 +82,7 @@ function applyPayloadForLanguage(rawResults: RawPayloadResults): void {
         reviewsError = rawResults.reviewsResult.reason?.message || "Error al cargar reseñas";
     }
 
-    // 3. Anuncios: DTO -> Mapper -> Entity
+    // 5. Anuncios: DTO -> Mapper -> Entity
     let adEntity: Ad | null = null;
     let adsError: string | null = null;
     if (rawResults.adsResult.status === 'fulfilled') {
@@ -71,12 +91,10 @@ function applyPayloadForLanguage(rawResults: RawPayloadResults): void {
         adsError = rawResults.adsResult.reason?.message || "Error al cargar anuncios";
     }
 
-    // Actualizar Store centralizado con las Entidades formateadas para el idioma activo
-    store.setMovies(moviesEntities);
-
     // Actualizar la Interfaz Gráfica
     updateLanguageUI(store);
-    renderGallery(store.getFilteredMovies(), store);
+    updateSimulationButtonsUI();
+    renderGallery(store.getFilteredItems(), store);
     updateFavoritesBadge(store);
 
     renderAdsBanner(adEntity, adsError, store);
@@ -85,10 +103,10 @@ function applyPayloadForLanguage(rawResults: RawPayloadResults): void {
 
 /**
  * Función principal de inicio de la aplicación.
- * Orquesta la llamada concurrente a los 3 servicios backend y ejecuta el flujo DTO -> Mapper -> Entity.
+ * Orquesta la llamada concurrente a los servicios backend y ejecuta el flujo DTO -> Mapper -> DataCatalogManager.
  */
 export async function initApp(): Promise<void> {
-    console.log("🏁 [InitApp] Inicializando CineVerse con TypeScript Estricto y Arquitectura por Capas...");
+    console.log("🏁 [InitApp] Inicializando CineVerse con Repositorio Genérico y TypeScript Estricto...");
 
     if (statusContainer) {
         statusContainer.hidden = false;
@@ -129,8 +147,8 @@ if (galleryContainer) {
         const favButton = target.closest<HTMLButtonElement>('[data-action="favorite"]');
         if (favButton) {
             e.stopPropagation();
-            const movieId = Number(favButton.dataset.id);
-            const isNowFav = store.toggleFavorite(movieId);
+            const rawId = favButton.dataset.id || '';
+            const isNowFav = store.toggleFavorite(rawId);
             
             if (isNowFav) {
                 favButton.classList.add('is-active');
@@ -143,19 +161,41 @@ if (galleryContainer) {
             }
             
             updateFavoritesBadge(store);
-            renderGallery(store.getFilteredMovies(), store);
+            renderGallery(store.getFilteredItems(), store);
             return;
         }
 
         // Clic en Tarjeta para ver Detalles (Modal)
         const cardArticle = target.closest<HTMLElement>('[data-action="detail"]');
         if (cardArticle) {
-            const movieId = Number(cardArticle.dataset.id);
-            openMovieDetailsModal(movieId, store);
+            const rawId = cardArticle.dataset.id || '';
+            openMediaDetailsModal(rawId, store);
         }
     });
 }
 
+// Filtro por Tipo de Medio (Películas, Series, Documentales, Todos)
+if (mediaTypeBar) {
+    const bar = mediaTypeBar;
+    bar.addEventListener('click', (e: MouseEvent) => {
+        const target = e.target as HTMLElement | null;
+        if (!target) return;
+
+        const typeBtn = target.closest<HTMLButtonElement>('.type-btn');
+        if (!typeBtn) return;
+
+        const allButtons = bar.querySelectorAll<HTMLButtonElement>('.type-btn');
+        allButtons.forEach(btn => btn.classList.remove('active'));
+        typeBtn.classList.add('active');
+
+        const selectedType = (typeBtn.dataset.type || 'all') as 'all' | 'movie' | 'series' | 'documentary';
+        store.setTypeFilter(selectedType);
+        
+        renderGallery(store.getFilteredItems(), store);
+    });
+}
+
+// Filtro por Género
 if (filterBar) {
     const bar = filterBar;
     bar.addEventListener('click', (e: MouseEvent) => {
@@ -172,8 +212,21 @@ if (filterBar) {
         const selectedGenre = filterBtn.dataset.genre || 'all';
         store.setGenre(selectedGenre);
         
-        const filteredMovies = store.getFilteredMovies();
-        renderGallery(filteredMovies, store);
+        renderGallery(store.getFilteredItems(), store);
+    });
+}
+
+// Clic en la insignia de favoritos del Header
+if (favoritesCounterBtn) {
+    favoritesCounterBtn.addEventListener('click', () => {
+        store.setGenre('favorites');
+        if (filterBar) {
+            const allButtons = filterBar.querySelectorAll<HTMLButtonElement>('.filter-btn');
+            allButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.genre === 'favorites');
+            });
+        }
+        renderGallery(store.getFilteredItems(), store);
     });
 }
 
@@ -184,7 +237,7 @@ if (searchInput) {
         if (clearSearchBtn) clearSearchBtn.hidden = value.trim() === '';
         
         store.setSearchQuery(value);
-        renderGallery(store.getFilteredMovies(), store);
+        renderGallery(store.getFilteredItems(), store);
     });
 }
 
@@ -194,16 +247,16 @@ if (clearSearchBtn) {
         if (searchInput) searchInput.value = '';
         clearBtn.hidden = true;
         store.setSearchQuery('');
-        renderGallery(store.getFilteredMovies(), store);
+        renderGallery(store.getFilteredItems(), store);
     });
 }
 
 // Alternador de Idioma (Español <-> Inglés)
 if (langToggleBtn) {
     langToggleBtn.addEventListener('click', () => {
-        store.setLanguage(); // Cambia de 'es' a 'en' o viceversa
+        store.setLanguage();
         if (lastRawResults) {
-            applyPayloadForLanguage(lastRawResults); // Re-mapea todas las DTOs al nuevo idioma activo
+            applyPayloadForLanguage(lastRawResults);
         }
     });
 }
@@ -230,11 +283,22 @@ if (movieModal) {
 const toggleAdErrBtn = document.getElementById('toggle-ad-err') as HTMLButtonElement | null;
 const toggleReviewErrBtn = document.getElementById('toggle-review-err') as HTMLButtonElement | null;
 
+function updateSimulationButtonsUI(): void {
+    const lang = store.getLanguage();
+    const t = getTranslation(lang);
+    if (toggleAdErrBtn) {
+        toggleAdErrBtn.textContent = simulateAdFail ? t.simAdError : t.simAdNormal;
+    }
+    if (toggleReviewErrBtn) {
+        toggleReviewErrBtn.textContent = simulateReviewFail ? t.simReviewError : t.simReviewNormal;
+    }
+}
+
 if (toggleAdErrBtn) {
     toggleAdErrBtn.addEventListener('click', () => {
         simulateAdFail = !simulateAdFail;
         toggleAdErrBtn.classList.toggle('active-err', simulateAdFail);
-        toggleAdErrBtn.textContent = simulateAdFail ? "❌ Anuncios: ERROR SIMULADO" : "🟢 Anuncios: Normal";
+        updateSimulationButtonsUI();
         initApp();
     });
 }
@@ -243,7 +307,7 @@ if (toggleReviewErrBtn) {
     toggleReviewErrBtn.addEventListener('click', () => {
         simulateReviewFail = !simulateReviewFail;
         toggleReviewErrBtn.classList.toggle('active-err', simulateReviewFail);
-        toggleReviewErrBtn.textContent = simulateReviewFail ? "❌ Reseñas: ERROR SIMULADO" : "🟢 Reseñas: Normal";
+        updateSimulationButtonsUI();
         initApp();
     });
 }

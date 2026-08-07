@@ -897,3 +897,65 @@ body {
     color: #ff6b6b;
     font-size: 0.9rem;
 }
+
+/* --------------------------------------------------------------------------
+   ESTILOS TAREA 4: BADGES Y FILTROS MULTIMEDIA (GENERIC REPOSITORY)
+   -------------------------------------------------------------------------- */
+.type-bar {
+    justify-content: center;
+}
+
+.type-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--radius-full);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.type-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+.type-btn.active {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #ffffff;
+    border-color: #60a5fa;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+}
+
+.media-type-badge {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.5px;
+    z-index: 2;
+}
+
+.media-type-badge.type-movie {
+    border-left: 3px solid #e50914;
+}
+
+.media-type-badge.type-series {
+    border-left: 3px solid #3b82f6;
+}
+
+.media-type-badge.type-documentary {
+    border-left: 3px solid #10b981;
+}
+

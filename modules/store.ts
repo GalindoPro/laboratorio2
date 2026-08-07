@@ -1,50 +1,119 @@
 /**
  * ============================================================================
- * MÓDULO STORE - GESTIÓN DE ESTADO Y CACHÉ MEDIANTE CLAUSURAS (TS STRICT)
+ * MÓDULO STORE - GESTIÓN DE ESTADO Y CATALOGO MEDIANTE REPOSITORIO GENÉRICO
  * ----------------------------------------------------------------------------
- * Función constructora que encapsula el estado centralizado y un Caché Privado
- * trabajando con Entidades saneadas `Movie`.
+ * Utiliza DataCatalogManager<MediaItem> como repositorio genérico en memoria,
+ * soportando películas (Movie), series (Series) y documentales (Documentary).
+ * Incluye persistencia de favoritos mediante localStorage.
  * ============================================================================
  */
 
-import { Movie } from '../entities/movie.entity.js';
+import { MediaItem, Movie } from '../entities/media.entity.js';
+import { DataCatalogManager } from '../services/data-catalog-manager.js';
 import { Language } from './i18n.js';
 
-export interface MovieStore {
-    setMovies(moviesList: Movie[]): void;
+const FAVORITES_STORAGE_KEY = 'cineverse_favorites_v1';
+const LANG_STORAGE_KEY = 'cineverse_lang_v1';
+
+function loadFavoritesFromStorage(): Set<string> {
+    try {
+        const raw = localStorage.getItem(FAVORITES_STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                return new Set(parsed.map(id => String(id)));
+            }
+        }
+    } catch (e) {
+        console.warn('⚠️ [Store] Error al cargar favoritos desde localStorage:', e);
+    }
+    return new Set<string>();
+}
+
+function saveFavoritesToStorage(favorites: Set<string>): void {
+    try {
+        const arrayData = Array.from(favorites);
+        localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(arrayData));
+    } catch (e) {
+        console.warn('⚠️ [Store] Error al guardar favoritos en localStorage:', e);
+    }
+}
+
+function loadLangFromStorage(): Language {
+    try {
+        const saved = localStorage.getItem(LANG_STORAGE_KEY);
+        if (saved === 'en' || saved === 'es') return saved;
+    } catch (e) {
+        console.warn('⚠️ [Store] Error al cargar idioma desde localStorage:', e);
+    }
+    return 'es';
+}
+
+function saveLangToStorage(lang: Language): void {
+    try {
+        localStorage.setItem(LANG_STORAGE_KEY, lang);
+    } catch (e) {
+        console.warn('⚠️ [Store] Error al guardar idioma en localStorage:', e);
+    }
+}
+
+export interface MediaStore {
+    catalog: DataCatalogManager<MediaItem>;
+    setMediaItems(items: MediaItem[]): void;
+    addMediaItem(item: MediaItem): void;
+    updateMediaPartial(id: string | number, changes: Partial<MediaItem>): MediaItem | undefined;
     setGenre(genre: string): void;
     getGenre(): string;
+    setTypeFilter(type: 'all' | 'movie' | 'series' | 'documentary'): void;
+    getTypeFilter(): string;
     setSearchQuery(query: string): void;
     getSearchQuery(): string;
     getLanguage(): Language;
     setLanguage(lang?: Language): Language;
-    toggleFavorite(movieId: number): boolean;
-    isFavorite(movieId: number): boolean;
+    toggleFavorite(id: string | number): boolean;
+    isFavorite(id: string | number): boolean;
     getFavoritesCount(): number;
-    getMovieById(movieId: number): Movie | undefined;
+    getById(id: string | number): MediaItem | undefined;
     clearCache(): void;
     getCacheKeys(): string[];
-    getFilteredMovies(): Movie[];
+    getFilteredItems(): MediaItem[];
+    getFilteredMovies(): Movie[]; // Retrocompatibilidad
 }
 
 /**
- * Fabrica el Store central de estado encapsulando los datos y el Caché en memoria.
+ * Fabrica el Store central de estado encapsulando los datos y el Repositorio Genérico.
  */
-export function createMovieStore(): MovieStore {
-    // --- VARIABLES PRIVADAS ENCAPSULADAS EN EL CLOSURE ---
-    let _movies: Movie[] = [];
+export function createMediaStore(): MediaStore {
+    const catalog = new DataCatalogManager<MediaItem>();
     let _activeGenre: string = 'all';
+    let _activeType: 'all' | 'movie' | 'series' | 'documentary' = 'all';
     let _searchQuery: string = '';
-    let _currentLang: Language = 'es';
-    const _favorites: Set<number> = new Set<number>();
+    let _currentLang: Language = loadLangFromStorage();
+    const _favorites: Set<string> = loadFavoritesFromStorage();
 
     // 💾 CACHÉ PRIVADO EN MEMORIA
-    const _genreCache: Record<string, Movie[]> = {};
+    const _cache: Record<string, MediaItem[]> = {};
 
     return {
-        setMovies(moviesList: Movie[]): void {
-            _movies = Array.isArray(moviesList) ? moviesList : [];
+        catalog,
+
+        setMediaItems(items: MediaItem[]): void {
+            catalog.clear();
+            catalog.addMany(items);
             this.clearCache();
+        },
+
+        addMediaItem(item: MediaItem): void {
+            catalog.add(item);
+            this.clearCache();
+        },
+
+        updateMediaPartial(id: string | number, changes: Partial<MediaItem>): MediaItem | undefined {
+            const updated = catalog.update(id, changes);
+            if (updated) {
+                this.clearCache();
+            }
+            return updated;
         },
 
         setGenre(genre: string): void {
@@ -53,6 +122,14 @@ export function createMovieStore(): MovieStore {
 
         getGenre(): string {
             return _activeGenre;
+        },
+
+        setTypeFilter(type: 'all' | 'movie' | 'series' | 'documentary'): void {
+            _activeType = type;
+        },
+
+        getTypeFilter(): string {
+            return _activeType;
         },
 
         setSearchQuery(query: string): void {
@@ -73,83 +150,91 @@ export function createMovieStore(): MovieStore {
             } else {
                 _currentLang = _currentLang === 'es' ? 'en' : 'es';
             }
+            saveLangToStorage(_currentLang);
             this.clearCache();
             return _currentLang;
         },
 
-        toggleFavorite(movieId: number): boolean {
-            const numericId = Number(movieId);
+        toggleFavorite(id: string | number): boolean {
+            const key = String(id);
             let isFav = false;
-            if (_favorites.has(numericId)) {
-                _favorites.delete(numericId);
+            if (_favorites.has(key)) {
+                _favorites.delete(key);
                 isFav = false;
             } else {
-                _favorites.add(numericId);
+                _favorites.add(key);
                 isFav = true;
             }
+            saveFavoritesToStorage(_favorites);
             this.clearCache();
             return isFav;
         },
 
-        isFavorite(movieId: number): boolean {
-            return _favorites.has(Number(movieId));
+        isFavorite(id: string | number): boolean {
+            const key = String(id);
+            return _favorites.has(key);
         },
 
         getFavoritesCount(): number {
             return _favorites.size;
         },
 
-        getMovieById(movieId: number): Movie | undefined {
-            return _movies.find(movie => movie.id === Number(movieId));
+        getById(id: string | number): MediaItem | undefined {
+            return catalog.getById(id);
         },
 
         clearCache(): void {
-            Object.keys(_genreCache).forEach(key => delete _genreCache[key]);
-            console.log("🧹 [CLOSURE CACHE] Caché privado en memoria purgado.");
+            Object.keys(_cache).forEach(key => delete _cache[key]);
+            console.log("🧹 [CATALOG CACHE] Caché de catálogo purgado.");
         },
 
         getCacheKeys(): string[] {
-            return Object.keys(_genreCache);
+            return Object.keys(_cache);
         },
 
-        getFilteredMovies(): Movie[] {
-            const cacheKey = `${_activeGenre}_${_currentLang}`;
+        getFilteredItems(): MediaItem[] {
+            const cacheKey = `${_activeGenre}_${_activeType}_${_currentLang}`;
 
-            if (_searchQuery === '' && _genreCache[cacheKey]) {
-                console.log(`⚡ [CACHE HIT - CLOSURE] Retornando películas para género '${_activeGenre}' [${_currentLang.toUpperCase()}] DIRECTAMENTE desde el Caché Privado.`, {
-                    genre: _activeGenre,
-                    cachedCount: _genreCache[cacheKey].length,
-                    activeCacheKeys: Object.keys(_genreCache)
-                });
-                return _genreCache[cacheKey];
+            if (_searchQuery === '' && _cache[cacheKey]) {
+                return _cache[cacheKey];
             }
 
-            console.log(`💾 [CACHE MISS - CLOSURE] Calculando y guardando películas en el Caché Privado para género '${_activeGenre}' [${_currentLang.toUpperCase()}]...`);
+            const items = catalog.filter(item => {
+                const itemKey = String(item.id);
 
-            const filtered = _movies.filter(movie => {
-                let matchesGenre = true;
+                // Filtro por tipo (movie, series, documentary)
+                if (_activeType !== 'all' && item.type !== _activeType) {
+                    return false;
+                }
+
+                // Filtro por género o favoritos
                 if (_activeGenre === 'favorites') {
-                    matchesGenre = _favorites.has(movie.id);
+                    if (!_favorites.has(itemKey)) return false;
                 } else if (_activeGenre !== 'all') {
-                    matchesGenre = (movie.genreKey === _activeGenre || movie.genre === _activeGenre);
+                    if (item.genreKey !== _activeGenre && item.genre !== _activeGenre) return false;
                 }
 
-                let matchesSearch = true;
+                // Filtro por término de búsqueda
                 if (_searchQuery !== '') {
-                    const title = movie.title.toLowerCase();
-                    const synopsis = movie.synopsis.toLowerCase();
-
-                    matchesSearch = title.includes(_searchQuery) || synopsis.includes(_searchQuery);
+                    const title = item.title.toLowerCase();
+                    const synopsis = item.synopsis.toLowerCase();
+                    if (!title.includes(_searchQuery) && !synopsis.includes(_searchQuery)) {
+                        return false;
+                    }
                 }
 
-                return matchesGenre && matchesSearch;
+                return true;
             });
 
             if (_searchQuery === '') {
-                _genreCache[cacheKey] = filtered;
+                _cache[cacheKey] = items;
             }
 
-            return filtered;
+            return items;
+        },
+
+        getFilteredMovies(): Movie[] {
+            return this.getFilteredItems().filter((item): item is Movie => item.type === 'movie');
         }
     };
 }

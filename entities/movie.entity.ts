@@ -1,15 +1,5 @@
 /**
  * Modelo de Dominio Limpio (Entidad Movie)
- * Datos saneados y adaptados para el consumo de la UI y el Store de la app.
+ * Re-exportación de la interfaz Movie desde media.entity.ts compatible con isolatedModules.
  */
-export interface Movie {
-    id: number;
-    title: string;
-    genre: string;
-    genreKey: string;
-    year: number;
-    rating: number;
-    director: string;
-    poster: string;
-    synopsis: string;
-}
+export type { Movie } from './media.entity.js';
