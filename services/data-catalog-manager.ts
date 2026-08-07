@@ -35,11 +35,32 @@ export class DataCatalogManager<T extends { id: string | number }> {
     }
 
     /**
-     * Obtiene una entidad por su identificador único
+     * Obtiene una entidad por su identificador único.
+     * Normaliza automáticamente el tipo: si el id es un string que representa
+     * un número, prueba también la clave numérica (necesario para IDs de TMDB
+     * que se guardan como number pero se leen como string desde atributos HTML).
      */
     public getById(id: string | number): T | undefined {
-        const found = this.items.get(id);
-        return found ? { ...found } : undefined;
+        // 1. Intento directo con el valor tal como viene
+        let found = this.items.get(id);
+        if (found) return { ...found };
+
+        // 2. Si es string y parece número, intenta con la clave numérica
+        if (typeof id === 'string') {
+            const asNumber = Number(id);
+            if (!isNaN(asNumber) && id.trim() !== '') {
+                found = this.items.get(asNumber);
+                if (found) return { ...found };
+            }
+        }
+
+        // 3. Si es número, intenta con la clave string
+        if (typeof id === 'number') {
+            found = this.items.get(String(id));
+            if (found) return { ...found };
+        }
+
+        return undefined;
     }
 
     /**
