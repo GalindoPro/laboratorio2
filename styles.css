@@ -885,46 +885,94 @@ body {
         font-size: 0.88rem;
     }
 
-    /* Modal en móvil: ocupa toda la pantalla desde abajo */
+    /* Modal en móvil: pantalla completa estilo Netflix */
     .movie-modal {
         width: 100vw;
         max-width: 100vw;
-        margin: auto 0 0 0;
-        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-        max-height: 92dvh;
+        height: 100dvh;
+        max-height: 100dvh;
+        margin: 0;
+        border-radius: 0;
+        overflow: hidden;
     }
 
     .modal-content {
-        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        border-radius: 0;
+        height: 100%;
+    }
+
+    .modal-body {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* El fondo blur ocupa toda la pantalla */
+    .modal-backdrop-img {
+        filter: blur(32px) brightness(0.25) saturate(1.8);
     }
 
     .modal-layout {
         grid-template-columns: 1fr;
         min-height: unset;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
     }
 
+    /* Poster: ocupa la mitad superior */
     .modal-poster-wrap {
-        max-height: 200px;
+        height: 52dvh;
+        max-height: 52dvh;
+        min-height: 200px;
+        flex-shrink: 0;
+        position: relative;
     }
 
     .modal-poster-img {
-        max-height: 240px;
+        width: 100%;
+        height: 100%;
+        max-height: none;
         min-height: unset;
         object-fit: contain;
     }
 
+    /* Gradiente de transición entre poster e info */
+    .modal-poster-wrap::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: linear-gradient(to bottom, transparent, var(--bg-secondary));
+        z-index: 3;
+    }
+
+    /* Info: scrolleable, ocupa el resto */
     .modal-info {
-        padding: 1rem 1rem 1.25rem;
+        padding: 1rem 1.25rem 2rem;
         max-height: unset;
-        gap: 0.6rem;
+        gap: 0.65rem;
+        flex: 1;
+        overflow-y: auto;
+        background: transparent;
+        position: relative;
+        z-index: 2;
     }
 
     .modal-heading {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
     }
 
     .modal-synopsis-text {
-        font-size: 0.85rem;
+        font-size: 0.88rem;
+    }
+
+    /* Botón cerrar flotante sobre el poster */
+    .close-modal-btn {
+        z-index: 30;
     }
 
     /* Barra de simulación en columna */
