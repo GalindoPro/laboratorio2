@@ -219,11 +219,9 @@ if (closeModalBtn && movieModal) {
 }
 if (movieModal) {
     const modal = movieModal;
+    // Cerrar al clicar el backdrop (el elemento <dialog> mismo, no su contenido)
     modal.addEventListener('click', (e) => {
-        const rect = modal.getBoundingClientRect();
-        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
-            rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
-        if (!isInDialog) {
+        if (e.target === modal) {
             modal.close();
         }
     });

@@ -170,7 +170,7 @@ export function updateFavoritesBadge(store: MediaStore): void {
 }
 
 /**
- * Abre el modal con renderizado polimórfico traducido según el tipo de entidad (Movie, Series, Documentary).
+ * Abre el modal con diseño premium y renderizado polimórfico traducido según el tipo de entidad.
  */
 export function openMediaDetailsModal(itemId: string | number, store: MediaStore): void {
     const item = store.getById(itemId);
@@ -180,49 +180,108 @@ export function openMediaDetailsModal(itemId: string | number, store: MediaStore
     const t = getTranslation(lang);
     const isFav = store.isFavorite(item.id);
 
+    // Estrellas visuales de rating
+    const stars = Math.round(item.rating / 2);
+    const starsHTML = Array.from({ length: 5 }, (_, i) =>
+        `<span class="modal-star${i < stars ? ' filled' : ''}">${i < stars ? '★' : '☆'}</span>`
+    ).join('');
+
+    // Color del tipo
+    const typeColor = item.type === 'movie' ? '#e50914' : item.type === 'series' ? '#3b82f6' : '#10b981';
+    const typeLabel = item.type === 'movie' ? t.badgeMovie : item.type === 'series' ? t.badgeSeries : t.badgeDocumentary;
+
+    // Detalles específicos del tipo
     let specificDetailHTML = '';
     if (item.type === 'movie') {
         const movie = item as Movie;
-        specificDetailHTML = `<p class="modal-director">${t.directorLabel} <strong>${movie.director}</strong></p>`;
+        specificDetailHTML = `
+            <div class="modal-detail-row">
+                <span class="modal-detail-icon">🎬</span>
+                <span><strong>${t.directorLabel}</strong> ${movie.director}</span>
+            </div>`;
     } else if (item.type === 'series') {
         const series = item as Series;
         specificDetailHTML = `
-            <p class="modal-director">${t.seasonsLabel} <strong>${series.seasons}</strong> | ${t.episodesLabel} <strong>${series.episodes}</strong></p>
-        `;
+            <div class="modal-detail-row">
+                <span class="modal-detail-icon">📺</span>
+                <span><strong>${t.seasonsLabel}</strong> ${series.seasons} &nbsp;|&nbsp; <strong>${t.episodesLabel}</strong> ${series.episodes}</span>
+            </div>`;
     } else if (item.type === 'documentary') {
         const doc = item as Documentary;
         specificDetailHTML = `
-            <p class="modal-director">${t.topicLabel} <strong>${doc.topic}</strong> | ${t.narratorLabel} <strong>${doc.narrator ?? 'N/A'}</strong></p>
-        `;
+            <div class="modal-detail-row">
+                <span class="modal-detail-icon">🎙️</span>
+                <span><strong>${t.topicLabel}</strong> ${doc.topic}</span>
+            </div>
+            <div class="modal-detail-row">
+                <span class="modal-detail-icon">🎤</span>
+                <span><strong>${t.narratorLabel}</strong> ${doc.narrator ?? 'N/A'}</span>
+            </div>`;
     }
 
-    const typeBadgeText = item.type === 'movie' 
-        ? t.badgeMovie 
-        : item.type === 'series' 
-            ? t.badgeSeries 
-            : t.badgeDocumentary;
-
     modalBody.innerHTML = `
-        <div class="modal-detail-layout">
-            <div class="modal-poster-col">
-                <img src="${item.poster}" alt="${item.title}">
-            </div>
-            <div class="modal-info-col">
-                <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
-                    <span class="modal-genre-tag">${item.genre}</span>
-                    <span class="modal-genre-tag" style="background: rgba(255, 255, 255, 0.1);">${typeBadgeText}</span>
+        <!-- Fondo con imagen en blur -->
+        <div class="modal-backdrop-img" style="background-image: url('${item.poster}')"></div>
+        <div class="modal-backdrop-overlay"></div>
+
+        <!-- Contenido del modal -->
+        <div class="modal-inner">
+            <!-- Poster + columna info -->
+            <div class="modal-layout">
+                <div class="modal-poster-wrap">
+                    <img class="modal-poster-img" src="${item.poster}" alt="${item.title}">
+                    <div class="modal-type-pill" style="background: ${typeColor}22; border-color: ${typeColor};">
+                        <span style="color: ${typeColor};">${typeLabel}</span>
+                    </div>
                 </div>
-                <h2 class="modal-title">${item.title}</h2>
-                <div class="modal-meta">
-                    <span class="modal-meta-item">⭐ ${item.rating.toFixed(1)} ${t.ratingLabel}</span>
-                    <span class="modal-meta-item">📅 ${item.year}</span>
-                    <span class="modal-meta-item">${isFav ? t.inFavorites : t.notFavorite}</span>
+
+                <div class="modal-info">
+                    <p class="modal-genre-label">${item.genre} · ${item.year}</p>
+                    <h2 class="modal-heading">${item.title}</h2>
+
+                    <!-- Rating con estrellas -->
+                    <div class="modal-rating-row">
+                        <div class="modal-stars">${starsHTML}</div>
+                        <span class="modal-rating-num">${item.rating.toFixed(1)}<span class="modal-rating-max">/10</span></span>
+                    </div>
+
+                    <!-- Sinopsis -->
+                    <p class="modal-synopsis-text">${item.synopsis}</p>
+
+                    <!-- Detalles específicos -->
+                    <div class="modal-details-block">
+                        ${specificDetailHTML}
+                        <div class="modal-detail-row">
+                            <span class="modal-detail-icon">📅</span>
+                            <span><strong>${lang === 'es' ? 'Año:' : 'Year:'}</strong> ${item.year}</span>
+                        </div>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="modal-actions">
+                        <button class="modal-fav-btn modal-fav-toggle" data-id="${String(item.id)}">
+                            <span class="modal-fav-icon">${isFav ? '❤️' : '🤍'}</span>
+                            <span class="modal-fav-label">${isFav ? t.inFavorites : t.favBtnAdd}</span>
+                        </button>
+                    </div>
                 </div>
-                <p class="modal-synopsis">${item.synopsis}</p>
-                ${specificDetailHTML}
             </div>
         </div>
     `;
+
+    // Botón de favorito DENTRO del modal
+    const modalFavBtn = modalBody.querySelector<HTMLButtonElement>('.modal-fav-toggle');
+    if (modalFavBtn) {
+        modalFavBtn.addEventListener('click', () => {
+            const rawId = modalFavBtn.dataset.id || '';
+            const isNowFav = store.toggleFavorite(rawId);
+            const iconEl = modalFavBtn.querySelector('.modal-fav-icon');
+            const labelEl = modalFavBtn.querySelector('.modal-fav-label');
+            if (iconEl) iconEl.textContent = isNowFav ? '❤️' : '🤍';
+            if (labelEl) labelEl.textContent = isNowFav ? t.inFavorites : t.favBtnAdd;
+            modalFavBtn.classList.toggle('is-fav', isNowFav);
+        });
+    }
 
     movieModal.showModal();
 }
