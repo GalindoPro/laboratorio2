@@ -576,15 +576,19 @@ body {
 .modal-poster-wrap {
     position: relative;
     overflow: hidden;
+    background: #000; /* Fondo negro para los laterales del contain */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-poster-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center top;
+    object-fit: contain;  /* Muestra la imagen completa sin recortar */
     display: block;
     min-height: 380px;
+    max-height: 100%;
 }
 
 .modal-type-pill {
@@ -817,7 +821,8 @@ body {
 
     .modal-poster-img {
         min-height: unset;
-        max-height: 260px;
+        max-height: 300px;
+        object-fit: contain;
     }
 
     .modal-info {
@@ -903,8 +908,9 @@ body {
     }
 
     .modal-poster-img {
-        max-height: 200px;
+        max-height: 240px;
         min-height: unset;
+        object-fit: contain;
     }
 
     .modal-info {
