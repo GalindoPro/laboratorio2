@@ -472,124 +472,270 @@ body {
     margin-top: auto;
 }
 
-/* 7. MODAL DE DETALLES (<dialog>) */
+/* 7. MODAL DE DETALLES PREMIUM (<dialog>) */
 .movie-modal {
     margin: auto;
     border: none;
     background: transparent;
-    padding: 1rem;
-    max-width: 700px;
-    width: 90%;
+    padding: 0;
+    max-width: 860px;
+    width: min(94vw, 860px);
     color: var(--text-primary);
+    max-height: 95dvh;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
 }
 
 .movie-modal::backdrop {
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Imagen de fondo en blur */
+.modal-backdrop-img {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(28px) brightness(0.3) saturate(1.5);
+    transform: scale(1.1);
+    z-index: 0;
+}
+
+.modal-backdrop-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(11, 15, 25, 0.92) 0%,
+        rgba(21, 28, 44, 0.88) 100%
+    );
+    z-index: 1;
 }
 
 .modal-content {
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    overflow: hidden;
     position: relative;
-    animation: modalIn 0.3s ease-out;
+    background: transparent;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255,255,255,0.08);
+    animation: modalIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-body {
+    position: relative;
+    overflow: hidden;
 }
 
 @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from { opacity: 0; transform: scale(0.88) translateY(30px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .close-modal-btn {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    z-index: 10;
-    background: rgba(11, 15, 25, 0.8);
-    border: 1px solid var(--border-color);
+    top: 14px;
+    right: 14px;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15);
     color: white;
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: var(--transition);
+    line-height: 1;
 }
 
 .close-modal-btn:hover {
     background: var(--accent-red);
+    border-color: var(--accent-red);
+    transform: rotate(90deg);
 }
 
-.modal-detail-layout {
+.modal-inner {
+    position: relative;
+    z-index: 2;
+}
+
+/* Layout del modal: poster + info */
+.modal-layout {
     display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 230px 1fr;
+    min-height: 420px;
 }
 
-.modal-poster-col img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.modal-info-col {
-    padding: 2rem 2rem 2rem 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.modal-genre-tag {
-    color: var(--accent-red);
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-}
-
-.modal-title {
-    font-size: 1.8rem;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 0.75rem;
-}
-
-.modal-meta {
+/* Columna poster */
+.modal-poster-wrap {
+    position: relative;
+    overflow: hidden;
+    background: #000; /* Fondo negro para los laterales del contain */
     display: flex;
     align-items: center;
-    gap: 1rem;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-bottom: 1.25rem;
+    justify-content: center;
 }
 
-.modal-meta-item {
-    background: var(--bg-card);
-    padding: 0.25rem 0.65rem;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
+.modal-poster-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;  /* Muestra la imagen completa sin recortar */
+    display: block;
+    min-height: 380px;
+    max-height: 100%;
 }
 
-.modal-synopsis {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
+.modal-type-pill {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    border: 1px solid;
+    border-radius: var(--radius-full);
+    padding: 0.3rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(8px);
+    text-transform: uppercase;
 }
 
-.modal-director {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    margin-bottom: 1.5rem;
+/* Columna info */
+.modal-info {
+    padding: 2rem 2rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+    max-height: 95dvh;
 }
 
-.modal-director strong {
+.modal-genre-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-red);
+}
+
+.modal-heading {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
     color: var(--text-primary);
+}
+
+/* Estrellas */
+.modal-rating-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.modal-stars {
+    display: flex;
+    gap: 2px;
+}
+
+.modal-star {
+    font-size: 1.1rem;
+    color: #4b5563;
+    transition: color 0.2s;
+}
+
+.modal-star.filled {
+    color: var(--accent-gold);
+    text-shadow: 0 0 8px rgba(255, 183, 3, 0.6);
+}
+
+.modal-rating-num {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent-gold);
+}
+
+.modal-rating-max {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+/* Sinopsis */
+.modal-synopsis-text {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    flex: 1;
+}
+
+/* Bloque de detalles específicos */
+.modal-details-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1rem;
+}
+
+.modal-detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+
+.modal-detail-row strong {
+    color: var(--text-primary);
+}
+
+.modal-detail-icon {
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Acciones del modal */
+.modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+}
+
+.modal-fav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.35rem;
+    border-radius: var(--radius-full);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-primary);
+}
+
+.modal-fav-btn:hover {
+    background: rgba(229, 9, 20, 0.2);
+    border-color: var(--accent-red);
+    transform: translateY(-2px);
+}
+
+.modal-fav-btn.is-fav {
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+    box-shadow: 0 4px 16px rgba(229, 9, 20, 0.4);
 }
 
 /* 8. PIE DE PÁGINA */
@@ -608,31 +754,258 @@ body {
     font-weight: 500;
 }
 
-/* 9. ADAPTABILIDAD RESPONSIVA */
+/* 9. ADAPTABILIDAD RESPONSIVA (MÓVILES, TABLETAS Y PC) */
+@media (max-width: 1024px) {
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    .modal-detail-layout {
+        grid-template-columns: 190px 1fr;
+    }
+}
+
 @media (max-width: 768px) {
+    .app-header {
+        padding: 0.75rem 1rem;
+    }
+
     .header-container {
         flex-direction: column;
         align-items: stretch;
+        gap: 0.75rem;
     }
-    
+
+    .brand {
+        justify-content: center;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        justify-content: space-between;
+    }
+
     .search-box {
         width: 100%;
+        order: -1;
     }
-    
-    .search-box:focus-within {
-        width: 100%;
+
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
     }
-    
-    .modal-detail-layout {
+
+    .card-content {
+        padding: 0.85rem;
+    }
+
+    .movie-title {
+        font-size: 0.95rem;
+    }
+
+    /* Modal en tablet: columna única */
+    .movie-modal {
+        width: min(96vw, 580px);
+    }
+
+    .modal-layout {
         grid-template-columns: 1fr;
+        min-height: unset;
     }
-    
-    .modal-poster-col {
+
+    .modal-poster-wrap {
+        max-height: 260px;
+    }
+
+    .modal-poster-img {
+        min-height: unset;
         max-height: 300px;
+        object-fit: contain;
     }
-    
-    .modal-info-col {
+
+    .modal-info {
         padding: 1.5rem;
+        max-height: unset;
+    }
+
+    .modal-heading {
+        font-size: 1.5rem;
+    }
+
+    .banner-box {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .banner-code {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Type bar: scroll horizontal en tablet */
+    .type-bar {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-main {
+        padding: 0.85rem 0.75rem;
+    }
+
+    .brand-title {
+        font-size: 1.35rem;
+    }
+
+    .brand-icon {
+        font-size: 1.6rem;
+    }
+
+    .favorites-badge, .lang-toggle-btn {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.78rem;
+    }
+
+    .badge-text {
+        display: none; /* Solo mostrar icono y número en móvil muy pequeño */
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.65rem;
+    }
+
+    .card-content {
+        padding: 0.7rem;
+    }
+
+    .movie-title {
+        font-size: 0.88rem;
+    }
+
+    /* Modal en móvil: pantalla completa estilo Netflix */
+    .movie-modal {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100dvh;
+        max-height: 100dvh;
+        margin: 0;
+        border-radius: 0;
+        overflow: hidden;
+    }
+
+    .modal-content {
+        border-radius: 0;
+        height: 100%;
+    }
+
+    .modal-body {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* El fondo blur ocupa toda la pantalla */
+    .modal-backdrop-img {
+        filter: blur(32px) brightness(0.25) saturate(1.8);
+    }
+
+    .modal-layout {
+        grid-template-columns: 1fr;
+        min-height: unset;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    /* Poster: ocupa la mitad superior */
+    .modal-poster-wrap {
+        height: 52dvh;
+        max-height: 52dvh;
+        min-height: 200px;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .modal-poster-img {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        min-height: unset;
+        object-fit: contain;
+    }
+
+    /* Gradiente de transición entre poster e info */
+    .modal-poster-wrap::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: linear-gradient(to bottom, transparent, var(--bg-secondary));
+        z-index: 3;
+    }
+
+    /* Info: scrolleable, ocupa el resto */
+    .modal-info {
+        padding: 1rem 1.25rem 2rem;
+        max-height: unset;
+        gap: 0.65rem;
+        flex: 1;
+        overflow-y: auto;
+        background: transparent;
+        position: relative;
+        z-index: 2;
+    }
+
+    .modal-heading {
+        font-size: 1.3rem;
+    }
+
+    .modal-synopsis-text {
+        font-size: 0.88rem;
+    }
+
+    /* Botón cerrar flotante sobre el poster */
+    .close-modal-btn {
+        z-index: 30;
+    }
+
+    /* Barra de simulación en columna */
+    .simulation-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .sim-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Type bar: scroll horizontal suave en móvil */
+    .type-bar {
+        justify-content: flex-start;
+        padding-bottom: 0.5rem;
+    }
+
+    .type-btn {
+        padding: 0.45rem 0.9rem;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+
+    .filter-btn {
+        padding: 0.45rem 0.9rem;
+        font-size: 0.82rem;
+    }
+
+    .reviews-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -811,3 +1184,75 @@ body {
     color: #ff6b6b;
     font-size: 0.9rem;
 }
+
+/* --------------------------------------------------------------------------
+   ESTILOS TAREA 4: BADGES Y FILTROS MULTIMEDIA (GENERIC REPOSITORY)
+   -------------------------------------------------------------------------- */
+.type-bar {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE */
+}
+
+.type-bar::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+.type-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.5rem 1.1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.type-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+.type-btn.active {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #ffffff;
+    border-color: #60a5fa;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+}
+
+.media-type-badge {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.5px;
+    z-index: 2;
+}
+
+.media-type-badge.type-movie {
+    border-left: 3px solid #e50914;
+}
+
+.media-type-badge.type-series {
+    border-left: 3px solid #3b82f6;
+}
+
+.media-type-badge.type-documentary {
+    border-left: 3px solid #10b981;
+}
+

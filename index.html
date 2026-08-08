@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Galería de Películas Interactiva desarrollada en Vanilla JavaScript aplicando patrones de arquitectura frontend.">
-    <title>CineVerse | Galería de Películas</title>
+    <meta name="description" content="Plataforma Multimedia con Repositorio Genérico de Datos y Matriz de Tipado TypeScript.">
+    <title>CineVerse | Catálogo Multimedia Genérico</title>
     <!-- Fuente Google Fonts: Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,13 +24,13 @@
             <div class="header-actions">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
-                    <input type="text" id="search-input" placeholder="Buscar película por título..." aria-label="Buscar película por título">
+                    <input type="text" id="search-input" placeholder="Buscar por título..." aria-label="Buscar por título">
                     <button id="clear-search" class="clear-btn" hidden aria-label="Limpiar búsqueda">&times;</button>
                 </div>
 
-                <div class="favorites-badge" id="favorites-counter-btn" title="Ver mis películas favoritas">
+                <div class="favorites-badge" id="favorites-counter-btn" title="Ver mis favoritos">
                     <span class="heart-icon">❤️</span>
-                    <span id="badge-text-fav" class="badge-text">Favoritas</span>
+                    <span id="badge-text-fav" class="badge-text">Favoritos</span>
                     <span id="favorites-count" class="badge-number">0</span>
                 </div>
 
@@ -56,35 +56,45 @@
         <!-- Contenedor para Anuncios Promocionales (Servicio 3) -->
         <div id="ads-container" class="ads-wrapper"></div>
 
-        <!-- Barra de Filtros (Demuestra Delegación de Eventos) -->
+        <!-- Sección de Filtros de Tipo de Medio y Género -->
         <section class="controls-section">
-            <h2 class="sr-only">Filtros de navegación</h2>
+            <h2 class="sr-only">Filtros de navegación multimedia</h2>
+            
+            <!-- Filtros de Tipo de Medio (Generic Repository Polymorphism) -->
+            <div id="media-type-bar" class="filter-bar type-bar" style="margin-bottom: 0.8rem;">
+                <button class="type-btn active" data-type="all">🎬 Todos los Medios</button>
+                <button class="type-btn" data-type="movie">🎥 Películas</button>
+                <button class="type-btn" data-type="series">📺 Series</button>
+                <button class="type-btn" data-type="documentary">🌿 Documentales</button>
+            </div>
+
+            <!-- Filtros de Género -->
             <div id="filter-bar" class="filter-bar">
-                <button class="filter-btn active" data-genre="all">Todas</button>
+                <button class="filter-btn active" data-genre="all">Todas las Categorías</button>
                 <button class="filter-btn" data-genre="Acción">Acción</button>
                 <button class="filter-btn" data-genre="Ciencia Ficción">Ciencia Ficción</button>
                 <button class="filter-btn" data-genre="Drama">Drama</button>
                 <button class="filter-btn" data-genre="Animación">Animación</button>
-                <button class="filter-btn" data-genre="favorites">❤️ Mis Favoritas</button>
+                <button class="filter-btn" data-genre="favorites">❤️ Mis Favoritos</button>
             </div>
         </section>
 
         <!-- Indicador de Estado / Carga (Control de Asincronía) -->
         <div id="status-container" class="status-container">
             <div class="spinner"></div>
-            <p id="status-text">Cargando catálogo de películas desde el servidor...</p>
+            <p id="status-text">Cargando catálogo multimedia desde el servidor...</p>
         </div>
 
         <!-- Estado Vacío -->
         <div id="empty-state" class="empty-state" hidden>
             <span class="empty-icon">🍿</span>
-            <h3 id="empty-title">No se encontraron películas</h3>
-            <p id="empty-text">Intenta ajustar la búsqueda o seleccionar otro filtro de género.</p>
+            <h3 id="empty-title">No se encontraron contenidos</h3>
+            <p id="empty-text">Intenta ajustar la búsqueda o seleccionar otro filtro de tipo o categoría.</p>
         </div>
 
-        <!-- Galería de Películas (Donde se inyecta con DocumentFragment) -->
+        <!-- Galería Multimedia (Donde se inyecta con DocumentFragment) -->
         <section class="gallery-section">
-            <h2 class="sr-only">Listado de Películas</h2>
+            <h2 class="sr-only">Listado de Contenidos Multimedia</h2>
             <div id="gallery-container" class="gallery-grid"></div>
         </section>
 
@@ -92,40 +102,41 @@
         <div id="reviews-container" class="reviews-wrapper"></div>
     </main>
 
-    <!-- Modal de Detalles de Película -->
+    <!-- Modal de Detalles de Película / Serie / Documental -->
     <dialog id="movie-modal" class="movie-modal">
         <div class="modal-content">
             <button id="close-modal-btn" class="close-modal-btn" aria-label="Cerrar modal">&times;</button>
             <div id="modal-body" class="modal-body">
-                <!-- Se llena dinámicamente al seleccionar una película -->
+                <!-- Se llena dinámicamente al seleccionar un contenido -->
             </div>
         </div>
     </dialog>
 
     <!-- Pie de página -->
     <footer class="app-footer">
-        <p id="footer-lab">Laboratorio 2 &bull; Desarrollo Web &bull; UMG 2026</p>
-        <p id="footer-arch" class="architecture-notes">Arquitectura: ESM Modules &bull; Promise.allSettled &bull; Closure Cache &bull; Event Delegation</p>
+        <p id="footer-lab">Laboratorio 4 &bull; Desarrollo Web &bull; UMG 2026</p>
+        <p id="footer-arch" class="architecture-notes">Arquitectura: Generic Repository Pattern &bull; TypeScript Utility Types &bull; Strict tsc</p>
     </footer>
 
-    <!-- Plantilla HTML5 para clonación eficiente de Tarjetas de Película -->
+    <!-- Plantilla HTML5 para clonación eficiente de Tarjetas Multimedia -->
     <template id="movie-card-template">
         <article class="movie-card" data-action="detail" data-id="">
             <div class="card-media">
                 <img class="movie-poster" src="" alt="" loading="lazy">
                 <span class="movie-rating">⭐ <span class="rating-value">0.0</span></span>
-                <button class="fav-btn" data-action="favorite" title="Agregar a favoritas" aria-label="Guardar favorita">
+                <span class="media-type-badge">TIPO</span>
+                <button class="fav-btn" data-action="favorite" title="Agregar a favoritos" aria-label="Guardar favorito">
                     <span class="fav-icon">🤍</span>
                 </button>
             </div>
             <div class="card-content">
                 <span class="movie-genre">Género</span>
-                <h3 class="movie-title">Título de la película</h3>
+                <h3 class="movie-title">Título del Contenido</h3>
                 <p class="movie-year">2026</p>
             </div>
         </article>
     </template>
 
-    <script type="module" src="app.js"></script>
+    <script type="module" src="dist/app.js"></script>
 </body>
 </html>
